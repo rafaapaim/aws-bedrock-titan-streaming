@@ -48,14 +48,14 @@ func main() {
 			ModelId:     aws.String("amazon.titan-text-lite-v1"), // Nome correto do modelo
 			ContentType: aws.String("application/json"),
 			Body: []byte(`{
-				"inputText": "` + requestBody.Prompt + `",
-				"textGenerationConfig": {
-					"maxTokenCount": 512,
-					"stopSequences": [],
-					"temperature": 0.7,
-					"topP": 1.0
-				}
-			}`),
+                "inputText": "` + requestBody.Prompt + `",
+                "textGenerationConfig": {
+                    "maxTokenCount": 300,
+                    "stopSequences": [],
+                    "temperature": 0.7,
+                    "topP": 1.0
+                }
+            }`),
 		}
 
 		// Invocação do modelo com streaming de resposta
@@ -71,10 +71,8 @@ func main() {
 			for event := range output.GetStream().Events() {
 				switch v := event.(type) {
 				case *types.ResponseStreamMemberChunk:
-					// Acessar o campo Bytes do PayloadPart
-					chunkBytes := v.Value.Bytes
 					// Enviar o chunk de texto para o cliente
-					c.SSEvent("message", string(chunkBytes))
+					c.SSEvent("message", string(v.Value.Bytes))
 				case *types.UnknownUnionMember:
 					// Tratamento de eventos desconhecidos
 					c.SSEvent("error", "unknown event")
@@ -84,6 +82,7 @@ func main() {
 				}
 			}
 			return false // Encerra o streaming após todos os eventos
+
 		})
 	})
 
